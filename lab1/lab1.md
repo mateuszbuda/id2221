@@ -266,7 +266,7 @@ Assume we have two input files, `file0` and `file1`, uploaded on HDFS, and our c
 
 3. Run the application
    ```bash
-$HADOOP_HOME/bin/hadoop jar wordcount.jar sics.WordCount input output
+$HADOOP_HOME/bin/hadoop jar wordcount.jar sics.WordCount /input output
    ```
 
 4. Check the output in HDFS
