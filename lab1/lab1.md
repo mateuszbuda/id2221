@@ -77,7 +77,7 @@ $HADOOP_HOME/bin/hdfs dfs -mkdir /sics
 $HADOOP_HOME/bin/hdfs dfs -put big /sics
 
 # View the content of /sics directory
-$HADOOP_HOME/bin/hdfs dfs -ls big /sics
+$HADOOP_HOME/bin/hdfs dfs -ls /sics
 
 # Determine the size of big on HDFS
 $HADOOP_HOME/bin/hdfs dfs -du -h /sics/big
