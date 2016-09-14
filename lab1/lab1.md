@@ -259,8 +259,7 @@ Assume we have two input files, `file0` and `file1`, uploaded on HDFS, and our c
 
   mkdir wordcount_classes
 
-  javac -classpath
-  $HADOOP_HOME/share/hadoop/common/hadoop-common-2.6.4.jar:$HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-client-core-2.6.4.jar:$HADOOP_HOME/share/hadoop/common/lib/commons-cli-1.2.jar -d wordcount_classes sics/WordCount.java
+  javac -classpath $HADOOP_HOME/share/hadoop/common/hadoop-common-2.6.4.jar:$HADOOP_HOME/share/hadoop/mapreduce/hadoop-mapreduce-client-core-2.6.4.jar:$HADOOP_HOME/share/hadoop/common/lib/commons-cli-1.2.jar -d wordcount_classes sics/WordCount.java
 
   jar -cvf wordcount.jar -C wordcount_classes/ .
   ```
