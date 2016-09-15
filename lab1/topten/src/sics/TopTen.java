@@ -27,11 +27,11 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 
 import org.w3c.dom.*;
 
+
 public class TopTen {
 
     private static DocumentBuilderFactory factory;
     private static DocumentBuilder builder;
-
 
     public static class TopTenMapper extends Mapper<Object, Text, NullWritable, Text> {
         // Stores a map of user reputation to the record
@@ -41,13 +41,12 @@ public class TopTen {
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             Map<String, String> parsed = transformXmlToMap(value.toString());
             String reputation = parsed.getOrDefault("Reputation", "");
-            Text user = new Text(parsed.getOrDefault("DisplayName", ""));
             if (reputation.length() <= 0) {
                 return;
             }
 
             // Add this record to our map with the reputation as the key
-            repToRecordMap.put(Integer.parseInt(reputation), user);
+            repToRecordMap.put(Integer.parseInt(reputation), new Text(value));
 
             // If we have more than ten records, remove the one with the lowest reputation.
             while (repToRecordMap.size() > 10) {
@@ -67,35 +66,26 @@ public class TopTen {
         // Stores a map of user reputation to the record
         // Overloads the comparator to order the reputations in descending order
         private TreeMap<Integer, Text> repToRecordMap = new TreeMap<Integer, Text>();
-        private Random random = new Random();
 
         public void reduce(NullWritable key, Iterable<Text> values, Context context) throws IOException, InterruptedException {
-            Integer i = 0;
             for (Text value : values) {
-                i += 1;
                 Map<String, String> parsed = transformXmlToMap(value.toString());
                 String reputation = parsed.getOrDefault("Reputation", "");
                 if (reputation.length() <= 0) {
                     return;
                 }
-                repToRecordMap.put(Integer.parseInt(reputation), value);
+                repToRecordMap.put(Integer.parseInt(reputation), new Text(value));
 
                 // If we have more than ten records, remove the one with the lowest reputation
                 while (repToRecordMap.size() > 10) {
-                    Integer minReputation = Collections.min(repToRecordMap.keySet());
-                    repToRecordMap.remove(minReputation);
+                    repToRecordMap.remove(repToRecordMap.firstKey());
                 }
             }
-            System.out.println();
-            System.out.println("Values in reduce count:");
-            System.out.println(i);
 
             for (Text t : repToRecordMap.descendingMap().values()) {
                 // Output our ten records to the file system with a null key
                 context.write(NullWritable.get(), t);
             }
-            System.out.println("Values in repToRecordMap count:");
-            System.out.println(repToRecordMap.values().size());
         }
     }
 
@@ -135,7 +125,7 @@ public class TopTen {
         job.setJarByClass(TopTen.class);
 
         job.setMapperClass(TopTenMapper.class);
-        // job.setCombinerClass(TopTenReducer.class);
+        job.setCombinerClass(TopTenReducer.class);
         job.setReducerClass(TopTenReducer.class);
 
         job.setOutputKeyClass(NullWritable.class);
