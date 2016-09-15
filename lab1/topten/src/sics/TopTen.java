@@ -41,17 +41,17 @@ public class TopTen {
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             Map<String, String> parsed = transformXmlToMap(value.toString());
             String reputation = parsed.getOrDefault("Reputation", "");
+            Text user = new Text(parsed.getOrDefault("DisplayName", ""));
             if (reputation.length() <= 0) {
                 return;
             }
 
             // Add this record to our map with the reputation as the key
-            repToRecordMap.put(Integer.parseInt(reputation), value);
+            repToRecordMap.put(Integer.parseInt(reputation), user);
 
             // If we have more than ten records, remove the one with the lowest reputation.
             while (repToRecordMap.size() > 10) {
-                Integer minReputation = Collections.min(repToRecordMap.keySet());
-                repToRecordMap.remove(minReputation);
+                repToRecordMap.remove(repToRecordMap.firstKey());
             }
         }
 
@@ -129,12 +129,13 @@ public class TopTen {
     }
 
     public static void main(String[] args) throws Exception {
+
         Configuration conf = new Configuration();
         Job job = Job.getInstance(conf, "top ten");
         job.setJarByClass(TopTen.class);
 
         job.setMapperClass(TopTenMapper.class);
-        job.setCombinerClass(TopTenReducer.class);
+        // job.setCombinerClass(TopTenReducer.class);
         job.setReducerClass(TopTenReducer.class);
 
         job.setOutputKeyClass(NullWritable.class);
