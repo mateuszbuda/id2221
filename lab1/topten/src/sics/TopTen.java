@@ -89,6 +89,11 @@ public class TopTen {
         }
     }
 
+    /**
+     * This function is strongly inspired by http://stackoverflow.com/a/9386024/1535436
+     * @param xml properly formatted XML string
+     * @return Map with attribute name as keys and their values
+     */
     private static Map<String, String> transformXmlToMap(String xml) {
         Document doc = null;
         if (factory == null || builder == null) {
