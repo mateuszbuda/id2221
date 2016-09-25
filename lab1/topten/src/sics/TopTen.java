@@ -8,7 +8,6 @@ import java.lang.System;
 import java.util.*;
 import java.util.Collections;
 import java.util.Map;
-import java.util.Random;
 import java.util.StringTokenizer;
 import java.util.TreeMap;
 import java.util.HashMap;
@@ -36,7 +35,6 @@ public class TopTen {
     public static class TopTenMapper extends Mapper<Object, Text, NullWritable, Text> {
         // Stores a map of user reputation to the record
         private TreeMap<Integer, Text> repToRecordMap = new TreeMap<Integer, Text>();
-        private Random random = new Random();
 
         public void map(Object key, Text value, Context context) throws IOException, InterruptedException {
             Map<String, String> parsed = transformXmlToMap(value.toString());
