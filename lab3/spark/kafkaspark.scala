@@ -49,7 +49,7 @@ object KafkaWordCount {
 
     val stateDstream = pairs.mapWithState(StateSpec.function(mappingFunc _))
 
-    stateDstream.print()
+    stateDstream.stateSnapshots().mapValues(v => { v._2 / v._1 }).print(26)
     ssc.start()
     ssc.awaitTermination()
   }
