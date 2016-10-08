@@ -21,23 +21,31 @@ object KafkaWordCount {
     val ssc = new StreamingContext(sparkConf, Seconds(2))
     ssc.checkpoint("checkpoint")
 
+    // consume "avg" topic with one partition
     var topics = Map[String, Int](
     "avg" -> 1)
     // if you want to try the receiver-less approach, comment the below line and uncomment the next one
-    val messages = KafkaUtils.createStream[String, String, StringDecoder, StringDecoder](ssc, kafkaConf, topics, StorageLevel.MEMORY_ONLY)
+    // we run it locally so we use memory only storage level
+    val messages = KafkaUtils.createStream[String, String, StringDecoder, StringDecoder](ssc, kafkaConf, topics,
+      StorageLevel.MEMORY_ONLY)
     //val messages = KafkaUtils.createDirectStream[String, String, StringDecoder, StringDecoder](<FILL IN>)
 
     val values = messages.map(_._2)
-    val pairs = values.map(x => (x.split(",")(0), x.split(",")(1).toDouble))
+    val pairs = values.map(x => {
+      val pair = x.split(",")
+      (pair(0), pair(1).toDouble)
+    })
 
-
-    def mappingFunc(key: String, value: Option[Double], state: State[Double]): Option[(String, Double)] = {
-      val sum = value.getOrElse(0d) + state.getOption.getOrElse(0d)
-      val output = (key, sum)
-      state.update(sum)
+    // To be able to compute the average for each key over the whole stream we need to store sum and count
+    // so we use Tuple2 as a state type
+    def mappingFunc(key: String, value: Option[Double], state: State[(Int, Double)]): Option[(String, Double)] = {
+      val restoredState = state.getOption.getOrElse((0, 0d))
+      val sum = value.getOrElse(0d) + restoredState._2
+      val count = 1 + restoredState._1
+      val output = (key, sum / count)
+      state.update((count, sum))
       Option(output)
     }
-
 
     val stateDstream = pairs.mapWithState(StateSpec.function(mappingFunc _))
 
